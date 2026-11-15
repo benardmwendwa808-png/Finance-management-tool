@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert');
-const { quote, snippet } = require('../src/lib/calc.js');
+const { quote, snippet } = require('./calc.js');
 
 test('plain USD quote', () => {
   const q = quote({ baseUsd: 100, qty: 1, depositPct: 50, currency: 'USD' });
