@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quote builder</title>
+<style>
+:root{--bg:#EEF2F6;--panel:#fff;--ink:#14202B;--mute:#566574;--line:#C9D3DC;--accent:#0F6E6A;--on:#fff;--warn:#9A5B00;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1720;--panel:#16212C;--ink:#E6EDF3;--mute:#9AA9B7;--line:#2A3846;--accent:#4FC3B8;--on:#06201E;--warn:#E0A63A}}
+:root[data-theme="dark"]{--bg:#0F1720;--panel:#16212C;--ink:#E6EDF3;--mute:#9AA9B7;--line:#2A3846;--accent:#4FC3B8;--on:#06201E;--warn:#E0A63A}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:30rem;margin:0 auto;padding:1.25rem 1rem 3rem}
+h1{font-size:1.6rem;line-height:1.15;margin:.25rem 0 .35rem;letter-spacing:-.01em}
+.sub{color:var(--mute);margin:0 0 1.25rem;max-width:34ch}
+.form{display:grid;gap:.9rem;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:1rem}
+label{display:grid;gap:.3rem;font-size:.9rem;color:var(--mute)}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:.65rem .7rem;width:100%}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+small{color:var(--mute)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+fieldset{border:0;padding:0;margin:0}legend{font-size:.9rem;color:var(--mute);padding:0;margin-bottom:.3rem}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg label{flex:1;display:block;color:var(--ink);text-align:center}
+.seg input{position:absolute;opacity:0;width:0}
+.seg span{display:block;padding:.6rem}
+.seg input:checked+span{background:var(--accent);color:var(--on);font-weight:600}
+.seg input:focus-visible+span{outline:2px solid var(--accent);outline-offset:-4px}
+.chk{display:flex;align-items:center;gap:.5rem;color:var(--ink);align-self:end;padding-bottom:.7rem}
+.chk input{width:auto}
+.ledger{margin:1.25rem 0;padding:1rem;background:var(--panel);border:1px solid var(--line);border-radius:12px;font-variant-numeric:tabular-nums}
+.row{display:flex;align-items:baseline;gap:.5rem;padding:.2rem 0}
+.row i{flex:1;border-bottom:2px dotted var(--line);transform:translateY(-.25rem)}
+.row.total{font-size:1.9rem;font-weight:700;letter-spacing:-.02em;padding:.5rem 0;margin:.25rem 0;border-top:2px solid var(--ink);border-bottom:2px solid var(--ink)}
+.row.total i{border-bottom-color:transparent}
+.err{color:var(--warn);font-weight:600}
+textarea{min-height:11rem;resize:vertical;line-height:1.45}
+.actions{display:flex;gap:.6rem;margin-top:.7rem}
+button,.btn{flex:1;text-align:center;font:inherit;font-weight:600;padding:.8rem 1rem;border-radius:8px;border:1px solid var(--accent);cursor:pointer;text-decoration:none}
+button{background:var(--accent);color:var(--on)}
+.btn{background:transparent;color:var(--accent)}
+#msg{min-height:1.5rem;color:var(--mute);margin:.6rem 0 0}
+.foot{color:var(--mute);font-size:.8rem;margin-top:1.5rem}
+</style>
+</head>
+<body>
+<main>
+<h1>Quote builder</h1>
+<p class="sub">Price a job, then copy a message ready for WhatsApp or email.</p>
+<section class="form">
+  <label>Service<select id="svc"></select></label>
+  <div class="two">
+    <label>Base price (USD)<input id="base" type="number" inputmode="decimal" min="0" step="0.01"></label>
+    <label>Quantity<input id="qty" type="number" inputmode="numeric" min="1" step="1" value="1"></label>
+  </div>
+  <label>Client name (optional)<input id="client" type="text" autocomplete="off"></label>
+  <fieldset class="seg-wrap"><legend>Show prices in</legend>
+    <div class="seg">
+      <label><input type="radio" name="cur" value="USD" checked><span>USD</span></label>
+      <label><input type="radio" name="cur" value="KES"><span>KES</span></label>
+    </div>
+  </fieldset>
+  <label id="fxrow" hidden>KES per 1 USD<input id="fx" type="number" inputmode="decimal" min="0" step="0.01"><small id="fxnote"></small></label>
+  <div class="two">
+    <label class="chk"><input type="checkbox" id="rush">Rush job</label>
+    <label>Rush fee %<input id="rushPct" type="number" inputmode="decimal" min="0" step="1"></label>
+  </div>
+  <div class="two">
+    <label>Deposit %<input id="dep" type="number" inputmode="decimal" min="0" max="100" step="1"></label>
+    <label>Valid for (days)<input id="valid" type="number" inputmode="numeric" min="0" step="1"></label>
+  </div>
+  <label>Payment link (optional)<input id="link" type="url" placeholder="Paste your Paystack or other link"></label>
+</section>
+<section class="ledger" id="ledger" aria-live="polite"></section>
+<label>Message to send<textarea id="out" readonly></textarea></label>
+<div class="actions"><button id="copy" type="button">Copy quote</button><a class="btn" id="wa" target="_blank" rel="noopener">Open WhatsApp</a></div>
+<p id="msg" role="status"></p>
+<p class="foot" id="foot"></p>
+</main>
+<script src="lib/calc.js"></script>
+<script>
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  let R = window.__RATES__;
+  if (!R) { try { R = await (await fetch('lib/rates.json')).json(); } catch (e) { R = { fx:{USD_KES:129}, defaults:{rush_pct:25,deposit_pct:50,valid_days:7}, services:[{name:'Custom job',base_usd:0}], verified_on:'unknown' }; } }
+  const KEY = 'fos.v1';
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
+  R.services.forEach((s, i) => { const o = document.createElement('option'); o.value = i; o.textContent = s.name; $('svc').appendChild(o); });
+  $('base').value = R.services[0].base_usd;
+  $('fx').value = saved.fx ?? R.fx.USD_KES;
+  $('rushPct').value = saved.rushPct ?? R.defaults.rush_pct;
+  $('dep').value = saved.dep ?? R.defaults.deposit_pct;
+  $('valid').value = saved.valid ?? R.defaults.valid_days;
+  $('link').value = saved.link || '';
+  $('fxnote').textContent = 'Manual rate. Rates file checked ' + R.verified_on + '. Update it before quoting.';
+  $('foot').textContent = 'Estimates only. Fees and rates change, so verify them before you rely on them.';
+  const cur = () => document.querySelector('input[name=cur]:checked').value;
+  function save() { try { localStorage.setItem(KEY, JSON.stringify({ fx:$('fx').value, rushPct:$('rushPct').value, dep:$('dep').value, valid:$('valid').value, link:$('link').value })); } catch (e) {} }
+  function render() {
+    $('fxrow').hidden = cur() !== 'KES';
+    const svc = R.services[$('svc').value].name;
+    const o = { service: svc, client: $('client').value.trim(), baseUsd: $('base').value, qty: $('qty').value, rush: $('rush').checked, rushPct: $('rushPct').value, depositPct: $('dep').value, validDays: $('valid').value, link: $('link').value.trim(), currency: cur(), fx: $('fx').value };
+    const L = $('ledger');
+    try {
+      const q = Calc.quote(o), f = (m) => Calc.format(m, q.currency);
+      const row = (k, v, c) => '<div class="row ' + (c || '') + '"><span>' + k + '</span><i></i><span>' + v + '</span></div>';
+      L.innerHTML = row('Price', f(q.subtotal)) + (q.rush ? row('Rush fee', f(q.rush)) : '') + row('Total', f(q.total), 'total') + row('Deposit', f(q.deposit)) + row('Balance', f(q.balance));
+      $('out').value = Calc.snippet(o, q);
+      $('wa').href = 'https://wa.me/?text=' + encodeURIComponent($('out').value);
+      $('wa').removeAttribute('aria-disabled');
+    } catch (e) { L.innerHTML = '<p class="err">' + e.message + '</p>'; $('out').value = ''; $('wa').removeAttribute('href'); }
+    save();
+  }
+  $('svc').addEventListener('change', () => { $('base').value = R.services[$('svc').value].base_usd; render(); });
+  document.querySelectorAll('input').forEach((el) => el.addEventListener('input', render));
+  $('copy').addEventListener('click', async () => {
+    const t = $('out').value; if (!t) return;
+    try { await navigator.clipboard.writeText(t); }
+    catch (e) { $('out').removeAttribute('readonly'); $('out').select(); document.execCommand('copy'); $('out').setAttribute('readonly', ''); }
+    $('msg').textContent = 'Copied. Paste it into WhatsApp or email.';
+  });
+  render();
+})();
+</script>
+</body>
+</html>
