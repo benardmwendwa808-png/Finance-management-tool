@@ -1,0 +1,13 @@
+{
+  "verified_on": "2026-11-14",
+  "warning": "Placeholder values. Verify every number before you sell or rely on it.",
+  "fx": { "USD_KES": 129, "note": "Manual rate. Update from your bank, Wise or the CBK." },
+  "defaults": { "rush_pct": 25, "deposit_pct": 50, "valid_days": 7 },
+  "tax": { "tot_rate_pct": 1.5, "source": "KRA turnover tax guide (rev. Oct 2024). Verify on kra.go.ke." },
+  "services": [
+    { "name": "Logo design", "base_usd": 150 },
+    { "name": "Landing page", "base_usd": 400 },
+    { "name": "Blog article (1,000 words)", "base_usd": 80 },
+    { "name": "Custom job", "base_usd": 0 }
+  ]
+}
