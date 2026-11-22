@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Freelance OS – know what you really get paid</title>
+<meta name="description" content="Quote builder, net-receipts sheet and client tracker for freelancers paid across borders.">
+<style>
+:root{--bg:#EEF2F6;--panel:#fff;--ink:#14202B;--mute:#566574;--line:#C9D3DC;--accent:#0F6E6A;--on:#fff;--warn:#9A5B00;color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root{--bg:#0F1720;--panel:#16212C;--ink:#E6EDF3;--mute:#9AA9B7;--line:#2A3846;--accent:#4FC3B8;--on:#06201E;--warn:#E0A63A}}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:34rem;margin:0 auto;padding:1.5rem 1rem 3rem}
+h1{font-size:2rem;line-height:1.1;letter-spacing:-.02em;margin:.5rem 0 .75rem}
+h2{font-size:1.2rem;margin:2rem 0 .6rem}
+.lead{font-size:1.1rem;color:var(--mute);margin:0 0 1.25rem}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:1rem;margin:.6rem 0}
+.card b{display:block;margin-bottom:.15rem}.card span{color:var(--mute)}
+.price{font-size:1.5rem;font-weight:700;margin:1rem 0 .25rem}
+.btns{display:grid;gap:.6rem;margin:1rem 0}
+.btn{display:block;text-align:center;padding:.9rem 1rem;border-radius:8px;border:1px solid var(--accent);font-weight:600;text-decoration:none;color:var(--accent)}
+.btn.main{background:var(--accent);color:var(--on)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.note{color:var(--mute);font-size:.9rem}
+#setup{border:1px dashed var(--warn);color:var(--warn);padding:.75rem;border-radius:8px;font-size:.9rem}
+details{border-bottom:1px solid var(--line);padding:.7rem 0}summary{font-weight:600;cursor:pointer}
+details p{margin:.5rem 0 0;color:var(--mute)}
+</style>
+</head>
+<body>
+<main>
+<p class="note">Freelance OS · built for freelancers paid across borders</p>
+<h1>Know exactly what lands in your M-Pesa.</h1>
+<p class="lead">Quote a client in 15 seconds, see what you keep after fees, and set money aside for tax. Works on your phone with free Google Sheets and Notion.</p>
+
+<div class="price" id="price" hidden></div>
+<div class="btns">
+  <a class="btn main" id="pay" hidden>Pre-order</a>
+  <a class="btn" id="wa" hidden>Ask a question on WhatsApp</a>
+  <a class="btn" href="index.html">Try the free quote builder</a>
+</div>
+<p id="setup" hidden>Not live yet. Add your PAY_LINK and WA_NUMBER at the bottom of join.html.</p>
+
+<h2>What you get</h2>
+<div class="card"><b>Quote builder</b><span>Pick a service, add rush and deposit, copy a message for WhatsApp. USD or KES.</span></div>
+<div class="card"><b>Money sheet</b><span>Add an invoice and see fees, net in KES, a tax set-aside estimate and overdue reminders you can send in one tap.</span></div>
+<div class="card"><b>Client tracker</b><span>Leads, clients, projects and tasks in Notion, with a Close deal button that starts a project.</span></div>
+
+<h2>Honest details</h2>
+<div class="card"><span>Fee and tax rates in the sheet are editable estimates, not tax advice. Check them with the official source. Files are delivered by WhatsApp or email after payment. Importing the Notion files is easiest from a browser.</span></div>
+
+<h2>Questions</h2>
+<details><summary>Do I need a laptop?</summary><p>No. Everything is set up from a phone, though the Notion import works best in a browser.</p></details>
+<details><summary>Is the tax part advice?</summary><p>No. It is an estimate based on rates you can edit. Confirm your own situation with KRA or an accountant.</p></details>
+<details><summary>What if I get stuck?</summary><p>Message me on WhatsApp and I will help you set it up.</p></details>
+</main>
+<script>
+/* EDIT THESE THREE LINES */
+const PAY_LINK = "";   // your Paystack or other payment link
+const WA_NUMBER = "";  // digits only with country code, e.g. 2547XXXXXXXX
+const PRICE_TEXT = ""; // e.g. KES 1,500 one-time
+const $ = (id) => document.getElementById(id);
+if (PRICE_TEXT) { $("price").textContent = PRICE_TEXT; $("price").hidden = false; }
+if (PAY_LINK) { $("pay").href = PAY_LINK; $("pay").hidden = false; }
+if (WA_NUMBER) { $("wa").href = "https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent("Hi, I have a question about Freelance OS."); $("wa").hidden = false; }
+if (!PAY_LINK && !WA_NUMBER) $("setup").hidden = false;
+</script>
+</body>
+</html>
