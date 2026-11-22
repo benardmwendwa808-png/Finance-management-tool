@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F6E6A"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png">
+<title>Freelance OS</title>
+<style>
+:root{--bg:#EEF2F6;--panel:#fff;--ink:#14202B;--mute:#566574;--line:#C9D3DC;--accent:#0F6E6A;--on:#fff;--warn:#9A5B00;color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root{--bg:#0F1720;--panel:#16212C;--ink:#E6EDF3;--mute:#9AA9B7;--line:#2A3846;--accent:#4FC3B8;--on:#06201E;--warn:#E0A63A}}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%;text-size-adjust:100%}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:32rem;margin:0 auto;padding:calc(1rem + env(safe-area-inset-top,0px)) 1rem 6rem}
+h1{font-size:1.5rem;margin:.2rem 0 .8rem;letter-spacing:-.01em}h2{font-size:1.05rem;margin:1.2rem 0 .4rem}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.9rem;margin:.6rem 0}
+.g{display:grid;gap:.7rem}.two{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+label{display:grid;gap:.25rem;font-size:.85rem;color:var(--mute)}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:.6rem;width:100%}
+textarea{min-height:9rem}
+button,.btn{font:inherit;font-weight:600;padding:.75rem 1rem;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:var(--on);text-align:center;text-decoration:none;cursor:pointer;display:block}
+.btn.o,button.o{background:transparent;color:var(--accent)}button.s{padding:.35rem .6rem;font-size:.8rem;display:inline-block}
+.mute{color:var(--mute);font-size:.85rem}.warn{color:var(--warn);font-weight:600}
+.row{display:flex;justify-content:space-between;gap:.5rem;padding:.15rem 0;font-variant-numeric:tabular-nums}.big{font-size:1.6rem;font-weight:700}
+.demo{background:var(--panel);border:1px dashed var(--warn);border-radius:10px;padding:.6rem .8rem;font-size:.85rem;margin-bottom:.6rem}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;background:none;border:0;border-radius:0;color:var(--mute);padding:.8rem .2rem;font-size:.85rem}nav button.on{color:var(--accent);box-shadow:inset 0 2px 0 var(--accent)}
+</style></head><body><main id="app"></main><nav id="nav" hidden></nav>
+<script src="calc.js"></script><script src="money.js"></script>
+<script>
+const WA="254740403637",DEMO=true,LIMIT=3,KEY="fos.app.v1";
+const $=(s)=>document.querySelector(s),$$=(s)=>[...document.querySelectorAll(s)];
+let S={set:null,inv:[],tab:"quote"};
+try{const r=JSON.parse(localStorage.getItem(KEY)||"null");if(r)S=Object.assign(S,r);}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({set:S.set,inv:S.inv}));}catch(e){}};
+const esc=(t)=>String(t).replace(/[&<>"]/g,(c)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const wa=(m)=>"https://wa.me/"+WA+"?text="+encodeURIComponent(m);
+const K=(m)=>Calc.format(m,"KES"),v=(id)=>$("#"+id).value,today=()=>new Date().toISOString().slice(0,10);
+const DEF={fx:129,tot:"yes",totPct:1.5,dep:50,rush:25,platPct:0,platFixed:0,wdPct:0,wdFixed:0};
+const num=(x,d)=>(x===""||isNaN(Number(x)))?d:Number(x);
+function fields(s){return `<div class="card g">
+<label>USD to KES rate<input id="f_fx" type="number" inputmode="decimal" value="${s.fx}"><span class="mute">Update it from your bank or Wise. Used when an invoice has no rate of its own.</span></label>
+<div class="two"><label>Use Turnover Tax?<select id="f_tot"><option value="yes"${s.tot=="yes"?" selected":""}>Yes</option><option value="no"${s.tot=="no"?" selected":""}>No</option></select></label>
+<label>Tax set-aside %<input id="f_totPct" type="number" inputmode="decimal" value="${s.totPct}"></label></div>
+<p class="mute">1.5% is a placeholder from KRA guidance. Check kra.go.ke. Estimates only, not tax advice.</p>
+<div class="two"><label>Default deposit %<input id="f_dep" type="number" inputmode="decimal" value="${s.dep}"></label><label>Rush fee %<input id="f_rush" type="number" inputmode="decimal" value="${s.rush}"></label></div>
+<b>How you get paid (your fees)</b>
+<div class="two"><label>Platform fee %<input id="f_platPct" type="number" inputmode="decimal" value="${s.platPct}"></label><label>Platform fixed fee<input id="f_platFixed" type="number" inputmode="decimal" value="${s.platFixed}"></label>
+<label>Withdrawal fee %<input id="f_wdPct" type="number" inputmode="decimal" value="${s.wdPct}"></label><label>Withdrawal fixed fee<input id="f_wdFixed" type="number" inputmode="decimal" value="${s.wdFixed}"></label></div></div>`}
+function readSet(){const d=S.set||DEF;return{fx:num(v("f_fx"),d.fx),tot:v("f_tot"),totPct:num(v("f_totPct"),d.totPct),dep:num(v("f_dep"),d.dep),rush:num(v("f_rush"),d.rush),platPct:num(v("f_platPct"),0),platFixed:num(v("f_platFixed"),0),wdPct:num(v("f_wdPct"),0),wdFixed:num(v("f_wdFixed"),0)}}
+const taxPct=()=>S.set.tot=="yes"?S.set.totPct:0;
+function calc(i){const s=S.set;return Money.invoice({gross:i.amt,cur:i.cur,fx:i.fx||s.fx,platPct:s.platPct,platFixed:s.platFixed,wdPct:s.wdPct,wdFixed:s.wdFixed,taxPct:taxPct(),paid:i.status=="Paid"})}
+const lock=()=>`<div class="demo warn">Demo limit reached. <a href="${wa("Hi, I'd like access to Freelance OS. My preferred username is: ")}" target="_blank" rel="noopener">Request full access on WhatsApp</a></div>`;
+function view(){
+  const nav=$("#nav"),A=$("#app");
+  if(!S.set){nav.hidden=true;A.innerHTML=`<h1>Set up Freelance OS</h1><p class="mute">Two minutes. You can change everything later in Settings.</p>${fields(DEF)}<button data-a="wiz">Save and open my dashboard</button>`;return}
+  nav.hidden=false;nav.innerHTML=[["quote","Quote"],["money","Money"],["unpaid","Unpaid"],["set","Settings"]].map(([k,t])=>`<button data-t="${k}" class="${S.tab==k?"on":""}">${t}</button>`).join("");
+  const demo=DEMO?`<div class="demo">Demo: up to ${LIMIT} invoices, backup locked. <a href="${wa("Hi, I'd like access to Freelance OS. My preferred username is: ")}" target="_blank" rel="noopener">Request full access</a></div>`:"";
+  A.innerHTML=demo+({quote:vQuote,money:vMoney,unpaid:vUnpaid,set:vSet}[S.tab])();
+  if(S.tab=="quote")qCalc();
+}
+function vQuote(){const s=S.set;return `<h1>Quote</h1><div class="card g"><label>Service<input id="q_svc" value="My service"></label>
+<div class="two"><label>Base price (USD)<input id="q_base" type="number" inputmode="decimal" value="100"></label><label>Quantity<input id="q_qty" type="number" inputmode="numeric" value="1"></label></div>
+<div class="two"><label>Show in<select id="q_cur"><option>USD</option><option>KES</option></select></label><label>Client (optional)<input id="q_client"></label></div>
+<label style="display:flex;gap:.5rem;align-items:center"><input id="q_rush" type="checkbox" style="width:auto">Rush job (+${s.rush}%)</label>
+<label>Payment link (optional)<input id="q_link" type="url" placeholder="Paste your link"></label></div>
+<div class="card" id="q_led"></div><textarea id="q_out" readonly></textarea>
+<div class="two" style="margin-top:.6rem"><button data-a="copy">Copy quote</button><a class="btn o" id="q_wa" target="_blank" rel="noopener">Open WhatsApp</a></div><p class="mute" id="q_msg"></p>`}
+function qCalc(){if(!$("#q_out"))return;const s=S.set,o={service:v("q_svc"),client:v("q_client").trim(),baseUsd:v("q_base"),qty:v("q_qty"),rush:$("#q_rush").checked,rushPct:s.rush,depositPct:s.dep,validDays:7,link:v("q_link").trim(),currency:v("q_cur"),fx:s.fx};
+  try{const q=Calc.quote(o),f=(m)=>Calc.format(m,q.currency);$("#q_led").innerHTML=`<div class="row"><span>Price</span><span>${f(q.subtotal)}</span></div>${q.rush?`<div class="row"><span>Rush</span><span>${f(q.rush)}</span></div>`:""}<div class="row big"><span>Total</span><span>${f(q.total)}</span></div><div class="row"><span>Deposit</span><span>${f(q.deposit)}</span></div><div class="row"><span>Balance</span><span>${f(q.balance)}</span></div>`;$("#q_out").value=Calc.snippet(o,q);$("#q_wa").href=wa($("#q_out").value)}catch(e){$("#q_led").innerHTML=`<span class="warn">${esc(e.message)}</span>`;$("#q_out").value=""}}
+function vMoney(){const m=today().slice(0,7);let g=0,n=0,t=0;S.inv.forEach((i)=>{if(i.status=="Paid"&&(i.paid||"").startsWith(m)){const c=calc(i);g+=c.grossK;n+=c.netK;t+=c.tax}});
+  const full=DEMO&&S.inv.length>=LIMIT;
+  return `<h1>Money</h1><div class="card"><b>This month (paid)</b><div class="row"><span>Gross received</span><span>${K(g)}</span></div><div class="row"><span>Fees</span><span>${K(g-n)}</span></div><div class="row"><span>Net before tax</span><span>${K(n)}</span></div><div class="row"><span>Tax set-aside (estimate)</span><span>${K(t)}</span></div><div class="row big"><span>Take-home</span><span>${K(n-t)}</span></div></div>
+  <h2>Add an invoice</h2>${full?lock():`<div class="card g"><div class="two"><label>Client code<input id="m_code" placeholder="CLIENT-A"></label><label>Amount<input id="m_amt" type="number" inputmode="decimal"></label>
+  <label>Currency<select id="m_cur"><option>USD</option><option>KES</option></select></label><label>Status<select id="m_st"><option>Paid</option><option>Sent</option></select></label>
+  <label>Due date<input id="m_due" type="date"></label><label>Paid date<input id="m_paid" type="date" value="${today()}"></label></div>
+  <label>Exchange rate you got (USD only, optional)<input id="m_fx" type="number" inputmode="decimal"></label><button data-a="add">Add invoice</button><p class="mute warn" id="m_err"></p></div>`}
+  <h2>Invoices</h2>${S.inv.length?S.inv.map((i,x)=>{let c;try{c=calc(i)}catch(e){return ""}return `<div class="card"><div class="row"><b>${esc(i.code)}</b><span>${i.cur} ${i.amt} · ${i.status}</span></div><div class="mute">Net ${K(c.netK)}${i.status=="Paid"?` · Tax ${K(c.tax)}`:""}</div><button class="s o" data-a="del" data-i="${x}">Delete</button></div>`}).join(""):`<p class="mute">No invoices yet.</p>`}`}
+function vUnpaid(){const L=S.inv.map((i,x)=>({i,x})).filter((o)=>o.i.status=="Sent");
+  return `<h1>Unpaid</h1>${L.length?L.map(({i,x})=>{const d=i.due?Math.floor((Date.now()-new Date(i.due+"T00:00:00"))/864e5):null;const late=d!==null&&d>0;const msg=`Hi, a friendly reminder that invoice ${i.code} for ${i.cur} ${i.amt}`+(i.due?` was due on ${i.due}`:" is awaiting payment")+". Please confirm when you can. Thank you.";
+  return `<div class="card"><div class="row"><b>${esc(i.code)}</b><span>${i.cur} ${i.amt}</span></div><div class="${late?"warn":"mute"}">${late?d+" days overdue":(i.due?"Due "+i.due:"No due date")}</div><div class="two" style="margin-top:.4rem"><a class="btn o" target="_blank" rel="noopener" href="${wa(msg)}">Send reminder</a><button data-a="paid" data-i="${x}">Mark paid</button></div></div>`}).join(""):`<p class="mute">Nothing outstanding.</p>`}`}
+function vSet(){return `<h1>Settings</h1>${fields(S.set)}<button data-a="saveset">Save settings</button><h2>Your data</h2><div class="card g"><p class="mute">Everything is stored on this phone only. Clearing browser data erases it.</p>${DEMO?lock():`<button class="o" data-a="export">Download backup</button>`}<button class="o" data-a="reset">Erase all data</button></div>`}
+document.addEventListener("click",(e)=>{const t=e.target.closest("[data-t],[data-a]");if(!t)return;
+  if(t.dataset.t){S.tab=t.dataset.t;view();return}
+  const a=t.dataset.a,i=Number(t.dataset.i);
+  if(a=="wiz"||a=="saveset"){S.set=readSet();save();view()}
+  else if(a=="copy"){const x=$("#q_out");if(!x.value)return;(navigator.clipboard?navigator.clipboard.writeText(x.value):Promise.reject()).catch(()=>{x.removeAttribute("readonly");x.select();document.execCommand("copy");x.setAttribute("readonly","")}).finally(()=>{$("#q_msg").textContent="Copied. Paste it into WhatsApp or email."})}
+  else if(a=="add"){if(DEMO&&S.inv.length>=LIMIT)return;const o={code:v("m_code").trim(),amt:num(v("m_amt"),0),cur:v("m_cur"),status:v("m_st"),due:v("m_due"),paid:v("m_st")=="Paid"?v("m_paid"):"",fx:num(v("m_fx"),0)};
+    if(!o.code){$("#m_err").textContent="Enter a client code.";return}try{calc(o)}catch(er){$("#m_err").textContent=er.message;return}S.inv.unshift(o);save();view()}
+  else if(a=="del"){if(confirm("Delete this invoice?")){S.inv.splice(i,1);save();view()}}
+  else if(a=="paid"){S.inv[i].status="Paid";S.inv[i].paid=today();save();view()}
+  else if(a=="export"){const b=new Blob([JSON.stringify({set:S.set,inv:S.inv})],{type:"application/json"});const l=document.createElement("a");l.href=URL.createObjectURL(b);l.download="freelance-os-backup.json";l.click()}
+  else if(a=="reset"){if(confirm("Erase everything on this phone?")){S={set:null,inv:[],tab:"quote"};try{localStorage.removeItem(KEY)}catch(er){}view()}}
+});
+document.addEventListener("input",(e)=>{if(e.target.id&&e.target.id.startsWith("q_"))qCalc()});
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+view();
+</script></body></html>
